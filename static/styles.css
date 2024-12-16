@@ -1,0 +1,163 @@
+html, body {
+    height: 100%; /* Гарантируем, что фон покрывает всю высоту окна */
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(180deg, #000, #2f2f2f, #595959 30%);
+    background-attachment: fixed; /* Фиксирует фон при прокрутке */
+    background-size: cover; /* Растягивает фон по размеру экрана */
+    color: #ddd;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #1e1e1e; /* Тёмный фон контейнера */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+  }
+  
+  header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  h1 {
+    font-size: 24px;
+    color: #f4f4f4;
+  }
+  
+  .filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .quick-filters button {
+    background: linear-gradient(145deg, #a836ff, #7200ff, #ff004f);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s, box-shadow 0.3s, background-color 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .quick-filters button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.4);
+  }
+  
+  .date-range label {
+    margin-right: 5px;
+    color: #ddd;
+  }
+  
+  .date-range input {
+    padding: 8px;
+    margin-right: 10px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    background: #2c2c2c;
+    color: #fff;
+  }
+  
+  .date-range button {
+    background: linear-gradient(145deg, #a836ff, #7200ff, #ff004f);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s, box-shadow 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .date-range button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.4);
+  }
+  
+  .data-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #2e2e2e; /* Тёмный фон таблицы */
+  }
+  
+  .data-table th,
+  .data-table td {
+    border: 1px solid #444;
+    padding: 12px;
+    text-align: center;
+    color: #ddd;
+  }
+  
+  .data-table th {
+    background: #3c3c3c;
+    font-weight: bold;
+  }
+  
+  tfoot td {
+    font-weight: bold;
+    background: #404040;
+    color: #fff;
+  }
+  
+
+
+
+
+  /* Для Chrome, Safari, Edge */
+::-webkit-scrollbar {
+    width: 12px; /* Ширина полосы прокрутки */
+    height: 12px; /* Высота для горизонтальной полосы */
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: rgba(128, 128, 128, 0.3); /* Прозрачный серый цвет для фона полосы */
+    border-radius: 10px; /* Закругление углов полосы прокрутки */
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(145deg, #a836ff, #7200ff, #ff004f); /* Градиент для ползунка */
+    border-radius: 10px; /* Закругление углов ползунка */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Тень для объёма */
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(145deg, #ff004f, #7200ff, #a836ff); /* Градиент меняется при наведении */
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.4); /* Увеличение тени при наведении */
+  }
+  
+  /* Для Firefox */
+  scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  
+  scrollbar-track {
+    background: rgba(128, 128, 128, 0.3);
+    border-radius: 10px;
+  }
+  
+  scrollbar-thumb {
+    background: linear-gradient(145deg, #a836ff, #7200ff, #ff004f);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  scrollbar-thumb:hover {
+    background: linear-gradient(145deg, #ff004f, #7200ff, #a836ff);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.4);
+  }
+  
