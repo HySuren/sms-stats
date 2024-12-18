@@ -2,8 +2,12 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
+import os
 from datetime import datetime, timedelta
 import sqlite3
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 # Инициализация FastAPI
 app = FastAPI()
@@ -18,7 +22,7 @@ app.add_middleware(
 )
 
 # Путь к SQLite базе
-DATABASE = "sms_stats.db"
+DATABASE = os.path.expanduser("~/app/Bomber/sms_stats.db")
 
 # Модель ответа
 class SMSStat(BaseModel):
@@ -34,6 +38,13 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Обрабатываем запрос к /stats и отдаем HTML-страницу
+@app.get("/stats", response_class=HTMLResponse)
+def get_stats():
+    html_file = Path("static/main.html").read_text()
+    return HTMLResponse(content=html_file)
 
 # Вспомогательная функция для выполнения SQL-запросов
 def query_database(query: str, params: tuple = ()):
@@ -45,7 +56,6 @@ def query_database(query: str, params: tuple = ()):
     return rows
 
 
-# Endpoint для получения данных
 # Endpoint для получения данных
 @app.get("/sms-stats", response_model=List[SMSStat])
 def get_sms_stats(
@@ -107,29 +117,80 @@ def get_sms_stats(
         )
     return stats
 
-@app.get("/config")
-def get_config():
-    query = "SELECT id, name, active FROM config"
-    rows = query_database(query)
-    return [{"id": row["id"], "name": row["name"], "active": bool(row["active"])} for row in rows]
-
-
-@app.post("/config/toggle/{service_id}")
-def toggle_service(service_id: int):
-    query = "UPDATE config SET active = NOT active WHERE id = ?"
+# --- Маршруты для управления сервисами ---
+@app.route("/service-config", methods=["GET"])
+def get_services():
+    """
+    Получение списка всех сервисов с их статусами (enabled/disabled).
+    """
     conn = get_db_connection()
-    conn.execute(query, (service_id,))
+    services = conn.execute("SELECT service_name, enabled FROM config").fetchall()
+    conn.close()
+
+    return jsonify([dict(row) for row in services])
+
+@app.route("/service-config", methods=["POST"])
+def add_service():
+    """
+    Добавление нового сервиса.
+    """
+    data = request.get_json()
+    service_name = data.get("service_name")
+    enabled = data.get("enabled", True)  # По умолчанию включен
+
+    if not service_name:
+        abort(400, "Параметр 'service_name' обязателен")
+
+    conn = get_db_connection()
+
+    try:
+        conn.execute(
+            "INSERT INTO config (service_name, enabled) VALUES (?, ?)",
+            (service_name, int(enabled)),
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        abort(400, "Сервис с таким именем уже существует")
+    finally:
+        conn.close()
+
+    return jsonify({"message": "Сервис добавлен успешно"}), 201
+
+@app.route("/service-config/<string:service_name>", methods=["PATCH"])
+def update_service_status(service_name):
+    """
+    Обновление статуса сервиса (enabled/disabled).
+    """
+    data = request.get_json()
+    new_status = data.get("enabled")
+
+    if new_status is None:
+        abort(400, "Параметр 'enabled' обязателен")
+
+    conn = get_db_connection()
+    cursor = conn.execute(
+        "UPDATE config SET enabled = ? WHERE service_name = ?",
+        (int(new_status), service_name),
+    )
     conn.commit()
     conn.close()
-    return {"status": "success"}
 
+    if cursor.rowcount == 0:
+        abort(404, "Сервис с указанным именем не найден")
 
-@app.post("/config")
-def add_service(service: dict):
-    name = service.get("name")
-    query = "INSERT INTO config (name, active) VALUES (?, 1)"
+    return jsonify({"message": "Статус сервиса обновлен успешно"})
+
+@app.route("/service-config/<string:service_name>", methods=["DELETE"])
+def delete_service(service_name):
+    """
+    Удаление сервиса.
+    """
     conn = get_db_connection()
-    conn.execute(query, (name,))
+    cursor = conn.execute("DELETE FROM config WHERE service_name = ?", (service_name,))
     conn.commit()
     conn.close()
-    return {"status": "success"}
+
+    if cursor.rowcount == 0:
+        abort(404, "Сервис с указанным именем не найден")
+
+    return jsonify({"message": "Сервис удален успешно"})

@@ -122,14 +122,13 @@ function renderServicesTable(data) {
   data.forEach((service) => {
     servicesTableBody.innerHTML += `
       <tr>
-        <td>${service.id}</td>
-        <td>${service.name}</td>
-        <td>${service.status ? "Активен" : "Неактивен"}</td>
+        <td>${service.service_name}</td>
+        <td>${service.enabled ? "Активен" : "Неактивен"}</td>
         <td>
-          <button class="toggle-status-btn" data-id="${service.id}" data-status="${service.status}">
-            ${service.status ? "Отключить" : "Включить"}
+          <button class="toggle-status-btn" data-name="${service.service_name}" data-status="${service.enabled}">
+            ${service.enabled ? "Отключить" : "Включить"}
           </button>
-          <button class="delete-service-btn" data-id="${service.id}">Удалить</button>
+          <button class="delete-service-btn" data-name="${service.service_name}">Удалить</button>
         </td>
       </tr>
     `;
@@ -138,28 +137,28 @@ function renderServicesTable(data) {
   // Добавляем обработчики для кнопок включения/отключения и удаления
   document.querySelectorAll(".toggle-status-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const serviceId = btn.getAttribute("data-id");
+      const serviceName = btn.getAttribute("data-name");
       const currentStatus = btn.getAttribute("data-status") === "true";
-      toggleServiceStatus(serviceId, !currentStatus);
+      toggleServiceStatus(serviceName, !currentStatus);
     });
   });
 
   document.querySelectorAll(".delete-service-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const serviceId = btn.getAttribute("data-id");
-      deleteService(serviceId);
+      const serviceName = btn.getAttribute("data-name");
+      deleteService(serviceName);
     });
   });
 }
 
 // Функция для включения/отключения сервиса
-function toggleServiceStatus(serviceId, newStatus) {
-  fetch(`${configApiUrl}/${serviceId}`, {
+function toggleServiceStatus(serviceName, newStatus) {
+  fetch(`${configApiUrl}/${encodeURIComponent(serviceName)}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ status: newStatus }),
+    body: JSON.stringify({ enabled: newStatus }),
   })
     .then((response) => {
       if (!response.ok) {
@@ -178,8 +177,8 @@ function toggleServiceStatus(serviceId, newStatus) {
 }
 
 // Функция для удаления сервиса
-function deleteService(serviceId) {
-  fetch(`${configApiUrl}/${serviceId}`, {
+function deleteService(serviceName) {
+  fetch(`${configApiUrl}/${encodeURIComponent(serviceName)}`, {
     method: "DELETE",
   })
     .then((response) => {
@@ -207,7 +206,7 @@ addServiceForm.addEventListener("submit", (event) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name: newServiceName }),
+      body: JSON.stringify({ service_name: newServiceName, enabled: true }),
     })
       .then((response) => {
         if (!response.ok) {
