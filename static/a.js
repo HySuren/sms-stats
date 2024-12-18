@@ -1,60 +1,58 @@
-// URL вашего API
+// URL API
 const apiUrl = "http://s3.c4ke.fun:8008/sms-stats";
-const configApiUrl = "http://s3.c4ke.fun:8008/service-config"; // Новый API для управления сервисами
+const configApiUrl = "http://s3.c4ke.fun:8008/service-config";
 
-// Элементы таблицы статистики
+// Таблицы и элементы
 const tableBody = document.getElementById("table-body");
 const totalDelivered = document.getElementById("total-delivered");
 const totalUndelivered = document.getElementById("total-undelivered");
 const totalPercentage = document.getElementById("total-percentage");
+const servicesTableBody = document.getElementById("services-table-body");
+const addServiceForm = document.getElementById("add-service-form");
 
-// Элементы управления сервисами
-const servicesTableBody = document.getElementById("services-table-body"); // Для таблицы сервисов
-const addServiceForm = document.getElementById("add-service-form"); // Форма добавления нового сервиса
+// Переключение вкладок
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const tabId = btn.getAttribute("data-tab");
 
-// Функция для загрузки статистики
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.classList.remove("active");
+    });
+
+    document.querySelectorAll(".tab-btn").forEach((tabBtn) => {
+      tabBtn.classList.remove("active");
+    });
+
+    btn.classList.add("active");
+    document.getElementById(tabId).classList.add("active");
+  });
+});
+
+// Загрузка статистики
 function fetchData(filter = null, startDate = null, endDate = null) {
   let url = new URL(apiUrl);
 
-  // Добавляем параметры фильтров в запрос
-  if (filter) {
-    url.searchParams.append("filter", filter);
-  }
-  if (startDate) {
-    url.searchParams.append("start_date", startDate);
-  }
-  if (endDate) {
-    url.searchParams.append("end_date", endDate);
-  }
+  if (filter) url.searchParams.append("filter", filter);
+  if (startDate) url.searchParams.append("start_date", startDate);
+  if (endDate) url.searchParams.append("end_date", endDate);
 
-  // Выполняем AJAX-запрос к API
   fetch(url)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Ошибка сети при загрузке данных");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      renderTable(data);
-    })
+    .then((response) => response.json())
+    .then((data) => renderTable(data))
     .catch((error) => {
-      console.error("Ошибка при загрузке данных:", error);
-      alert("Не удалось загрузить данные. Проверьте подключение к серверу.");
+      console.error("Ошибка загрузки статистики:", error);
+      alert("Не удалось загрузить статистику.");
     });
 }
 
-// Функция для отображения таблицы статистики
+// Отображение таблицы статистики
 function renderTable(data) {
   tableBody.innerHTML = "";
-
   let totalDel = 0;
   let totalUndel = 0;
 
-  // Рендер строк таблицы
   data.forEach((item) => {
     const percent = item.percentage.toFixed(2);
-
     tableBody.innerHTML += `
       <tr>
         <td>${item.service_name}</td>
@@ -63,62 +61,45 @@ function renderTable(data) {
         <td>${percent}%</td>
       </tr>
     `;
-
     totalDel += item.delivered;
     totalUndel += item.not_delivered;
   });
 
-  // Расчет итогов
   const totalPercent = ((totalDel / (totalDel + totalUndel)) * 100).toFixed(2);
-
-  // Отображение итогов
   totalDelivered.textContent = totalDel;
   totalUndelivered.textContent = totalUndel;
   totalPercentage.textContent = `${totalPercent}%`;
 }
 
-// Добавляем обработчики для фильтров (кнопки быстрого доступа)
+// Обработка фильтров
 document.querySelectorAll(".filter-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const filter = btn.getAttribute("data-filter");
-    fetchData(filter); // Запрашиваем данные с сервера
-  });
+  btn.addEventListener("click", () => fetchData(btn.getAttribute("data-filter")));
 });
 
-// Обработка фильтрации по диапазону дат
 document.getElementById("apply-dates").addEventListener("click", () => {
   const startDate = document.getElementById("start-date").value;
   const endDate = document.getElementById("end-date").value;
 
   if (startDate && endDate) {
-    fetchData(null, startDate, endDate); // Запрашиваем данные с сервера
+    fetchData(null, startDate, endDate);
   } else {
-    alert("Пожалуйста, выберите начальную и конечную даты.");
+    alert("Выберите начальную и конечную даты.");
   }
 });
 
-// Новый функционал: Загрузка списка сервисов для управления
+// Загрузка сервисов
 function fetchServices() {
   fetch(configApiUrl)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Ошибка сети при загрузке списка сервисов");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      renderServicesTable(data);
-    })
+    .then((response) => response.json())
+    .then((data) => renderServicesTable(data))
     .catch((error) => {
-      console.error("Ошибка при загрузке списка сервисов:", error);
-      alert("Не удалось загрузить список сервисов.");
+      console.error("Ошибка загрузки сервисов:", error);
+      alert("Не удалось загрузить сервисы.");
     });
 }
 
-// Функция для рендера таблицы управления сервисами
 function renderServicesTable(data) {
   servicesTableBody.innerHTML = "";
-
   data.forEach((service) => {
     servicesTableBody.innerHTML += `
       <tr>
@@ -134,97 +115,73 @@ function renderServicesTable(data) {
     `;
   });
 
-  // Добавляем обработчики для кнопок включения/отключения и удаления
   document.querySelectorAll(".toggle-status-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const serviceName = btn.getAttribute("data-name");
-      const currentStatus = btn.getAttribute("data-status") === "true";
-      toggleServiceStatus(serviceName, !currentStatus);
+      toggleServiceStatus(btn.getAttribute("data-name"), btn.getAttribute("data-status") !== "true");
     });
   });
 
   document.querySelectorAll(".delete-service-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const serviceName = btn.getAttribute("data-name");
-      deleteService(serviceName);
-    });
+    btn.addEventListener("click", () => deleteService(btn.getAttribute("data-name")));
   });
 }
 
-// Функция для включения/отключения сервиса
+// Изменение статуса сервиса
 function toggleServiceStatus(serviceName, newStatus) {
   fetch(`${configApiUrl}/${encodeURIComponent(serviceName)}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ enabled: newStatus }),
   })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Ошибка при обновлении статуса сервиса");
-      }
-      return response.json();
-    })
     .then(() => {
-      alert("Статус сервиса обновлен!");
-      fetchServices(); // Обновляем таблицу сервисов
+      alert("Статус сервиса обновлен.");
+      fetchServices();
     })
     .catch((error) => {
-      console.error("Ошибка при обновлении статуса сервиса:", error);
+      console.error("Ошибка обновления статуса:", error);
       alert("Не удалось обновить статус сервиса.");
     });
 }
 
-// Функция для удаления сервиса
+// Удаление сервиса
 function deleteService(serviceName) {
-  fetch(`${configApiUrl}/${encodeURIComponent(serviceName)}`, {
-    method: "DELETE",
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Ошибка при удалении сервиса");
-      }
-      alert("Сервис успешно удален!");
-      fetchServices(); // Обновляем таблицу сервисов
+  fetch(`${configApiUrl}/${encodeURIComponent(serviceName)}`, { method: "DELETE" })
+    .then(() => {
+      alert("Сервис удален.");
+      fetchServices();
     })
     .catch((error) => {
-      console.error("Ошибка при удалении сервиса:", error);
+      console.error("Ошибка удаления сервиса:", error);
       alert("Не удалось удалить сервис.");
     });
 }
 
-// Обработка добавления нового сервиса
+// Добавление нового сервиса
 addServiceForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const newServiceName = document.getElementById("new-service-name").value;
+  const newServiceEnabled = document.getElementById("new-service-enabled").checked;
 
   if (newServiceName) {
     fetch(configApiUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ service_name: newServiceName, enabled: true }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ service_name: newServiceName, enabled: newServiceEnabled }),
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Ошибка при добавлении нового сервиса");
-        }
-        alert("Новый сервис добавлен!");
-        addServiceForm.reset();
-        fetchServices(); // Обновляем таблицу сервисов
+      .then(() => {
+        alert("Сервис добавлен.");
+        fetchServices();
       })
       .catch((error) => {
-        console.error("Ошибка при добавлении нового сервиса:", error);
-        alert("Не удалось добавить новый сервис.");
+        console.error("Ошибка добавления сервиса:", error);
+        alert("Не удалось добавить сервис.");
       });
   } else {
-    alert("Введите имя нового сервиса.");
+    alert("Введите имя сервиса.");
   }
 });
 
-// Инициализация: Загрузка данных
-fetchData(); // Загрузка статистики
-fetchServices(); // Загрузка сервисов
+// Инициализация
+fetchData();
+fetchServices();

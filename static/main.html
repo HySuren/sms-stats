@@ -11,8 +11,8 @@
     <header>
       <h1>Dashboard</h1>
       <nav>
-        <button class="tab-btn active" data-tab="statistics">Статистика</button>
-        <button class="tab-btn" data-tab="management">Управление сервисами</button>
+        <button class="tab-btn active" data-tab="statistics-tab">Статистика</button>
+        <button class="tab-btn" data-tab="management-tab">Управление сервисами</button>
       </nav>
     </header>
 
@@ -20,7 +20,7 @@
     <section id="statistics-tab" class="tab active">
       <h2>Статистика рассылки SMS</h2>
       <div class="filters">
-        <!-- Фильтры остались без изменений -->
+        <!-- Фильтры -->
         <div class="quick-filters">
           <button class="filter-btn" data-filter="10min">10 минут</button>
           <button class="filter-btn" data-filter="30min">30 минут</button>
@@ -70,19 +70,21 @@
               <th>Действия</th>
             </tr>
           </thead>
-          <tbody id="config-table-body"></tbody>
+          <tbody id="services-table-body"></tbody>
         </table>
       </section>
 
       <!-- Форма добавления нового сервиса -->
       <div class="add-service-form">
         <h3>Добавить новый сервис</h3>
-        <input type="text" id="new-service-name" placeholder="Имя сервиса" />
-        <label>
-          <input type="checkbox" id="new-service-enabled" checked />
-          Активен
-        </label>
-        <button id="add-service-btn">Добавить</button>
+        <form id="add-service-form">
+          <input type="text" id="new-service-name" placeholder="Имя сервиса" />
+          <label>
+            <input type="checkbox" id="new-service-enabled" checked />
+            Активен
+          </label>
+          <button type="submit">Добавить</button>
+        </form>
       </div>
     </section>
   </div>
