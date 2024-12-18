@@ -65,7 +65,6 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
               <th>Имя сервиса</th>
               <th>Активен</th>
               <th>Действия</th>
@@ -74,7 +73,17 @@
           <tbody id="config-table-body"></tbody>
         </table>
       </section>
-      <button id="add-service-btn">Добавить сервис</button>
+
+      <!-- Форма добавления нового сервиса -->
+      <div class="add-service-form">
+        <h3>Добавить новый сервис</h3>
+        <input type="text" id="new-service-name" placeholder="Имя сервиса" />
+        <label>
+          <input type="checkbox" id="new-service-enabled" checked />
+          Активен
+        </label>
+        <button id="add-service-btn">Добавить</button>
+      </div>
     </section>
   </div>
   <script src="/static/a.js"></script>

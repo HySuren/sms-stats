@@ -31,8 +31,11 @@ class SMSStat(BaseModel):
     not_delivered: int
     percentage: float
 
+class Service(BaseModel):
+    service_name: str
+    enabled: bool
 
-# Функция для подключения к базе данных
+
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
@@ -40,13 +43,11 @@ def get_db_connection():
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Обрабатываем запрос к /stats и отдаем HTML-страницу
 @app.get("/stats", response_class=HTMLResponse)
 def get_stats():
     html_file = Path("static/main.html").read_text()
     return HTMLResponse(content=html_file)
 
-# Вспомогательная функция для выполнения SQL-запросов
 def query_database(query: str, params: tuple = ()):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -56,12 +57,11 @@ def query_database(query: str, params: tuple = ()):
     return rows
 
 
-# Endpoint для получения данных
 @app.get("/sms-stats", response_model=List[SMSStat])
 def get_sms_stats(
-    filter: Optional[str] = Query(None),  # Фильтр: "10min", "30min", "1h", "today"
-    start_date: Optional[str] = Query(None),  # Начальная дата (YYYY-MM-DD)
-    end_date: Optional[str] = Query(None),  # Конечная дата (YYYY-MM-DD)
+    filter: Optional[str] = Query(None),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
 ):
     query = """
         SELECT 
@@ -117,73 +117,68 @@ def get_sms_stats(
         )
     return stats
 
-# --- Маршруты для управления сервисами ---
-@app.route("/service-config", methods=["GET"])
+# --- Маршрут для получения списка сервисов ---
+@app.get("/service-config", response_model=list[Service])
 def get_services():
     """
-    Получение списка всех сервисов с их статусами (enabled/disabled).
+    Возвращает список всех сервисов из таблицы config.
     """
     conn = get_db_connection()
-    services = conn.execute("SELECT service_name, enabled FROM config").fetchall()
+    rows = conn.execute("SELECT service_name, enabled FROM config").fetchall()
     conn.close()
 
-    return jsonify([dict(row) for row in services])
+    if not rows:
+        raise HTTPException(status_code=404, detail="Сервисы не найдены")
 
-@app.route("/service-config", methods=["POST"])
-def add_service():
+    return [Service(service_name=row["service_name"], enabled=bool(row["enabled"])) for row in rows]
+
+
+# --- Маршрут для добавления нового сервиса ---
+@app.post("/service-config", response_model=Service)
+def add_service(service: Service):
     """
-    Добавление нового сервиса.
+    Добавляет новый сервис в таблицу config.
     """
-    data = request.get_json()
-    service_name = data.get("service_name")
-    enabled = data.get("enabled", True)  # По умолчанию включен
-
-    if not service_name:
-        abort(400, "Параметр 'service_name' обязателен")
-
     conn = get_db_connection()
-
     try:
         conn.execute(
             "INSERT INTO config (service_name, enabled) VALUES (?, ?)",
-            (service_name, int(enabled)),
+            (service.service_name, int(service.enabled)),
         )
         conn.commit()
     except sqlite3.IntegrityError:
-        abort(400, "Сервис с таким именем уже существует")
+        raise HTTPException(status_code=400, detail="Сервис с таким именем уже существует")
     finally:
         conn.close()
 
-    return jsonify({"message": "Сервис добавлен успешно"}), 201
+    return service
 
-@app.route("/service-config/<string:service_name>", methods=["PATCH"])
-def update_service_status(service_name):
+
+# --- Маршрут для обновления статуса сервиса ---
+@app.patch("/service-config/{service_name}", response_model=Service)
+def update_service_status(service_name: str, service: Service):
     """
-    Обновление статуса сервиса (enabled/disabled).
+    Обновляет статус (enabled/disabled) указанного сервиса.
     """
-    data = request.get_json()
-    new_status = data.get("enabled")
-
-    if new_status is None:
-        abort(400, "Параметр 'enabled' обязателен")
-
     conn = get_db_connection()
     cursor = conn.execute(
         "UPDATE config SET enabled = ? WHERE service_name = ?",
-        (int(new_status), service_name),
+        (int(service.enabled), service_name),
     )
     conn.commit()
     conn.close()
 
     if cursor.rowcount == 0:
-        abort(404, "Сервис с указанным именем не найден")
+        raise HTTPException(status_code=404, detail="Сервис с указанным именем не найден")
 
-    return jsonify({"message": "Статус сервиса обновлен успешно"})
+    return service
 
-@app.route("/service-config/<string:service_name>", methods=["DELETE"])
-def delete_service(service_name):
+
+# --- Маршрут для удаления сервиса ---
+@app.delete("/service-config/{service_name}")
+def delete_service(service_name: str):
     """
-    Удаление сервиса.
+    Удаляет сервис из таблицы config.
     """
     conn = get_db_connection()
     cursor = conn.execute("DELETE FROM config WHERE service_name = ?", (service_name,))
@@ -191,6 +186,6 @@ def delete_service(service_name):
     conn.close()
 
     if cursor.rowcount == 0:
-        abort(404, "Сервис с указанным именем не найден")
+        raise HTTPException(status_code=404, detail="Сервис с указанным именем не найден")
 
-    return jsonify({"message": "Сервис удален успешно"})
+    return {"message": "Сервис успешно удален"}
