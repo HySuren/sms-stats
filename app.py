@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
@@ -24,17 +24,21 @@ app.add_middleware(
 # Путь к SQLite базе
 DATABASE = os.path.expanduser("~/app/Bomber/sms_stats.db")
 
-# Модель ответа
+# Модель для получения статистики
 class SMSStat(BaseModel):
     service_name: str
     delivered: int
     not_delivered: int
     percentage: float
 
+# Модель для получения списка сервисов
 class Service(BaseModel):
     service_name: str
     enabled: bool
 
+# Модель для обновления статуса сервиса
+class ServiceUpdate(BaseModel):
+    enabled: bool
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
@@ -118,7 +122,7 @@ def get_sms_stats(
     return stats
 
 # --- Маршрут для получения списка сервисов ---
-@app.get("/service-config", response_model=list[Service])
+@app.get("/service-config", response_model=List[Service])
 def get_services():
     """
     Возвращает список всех сервисов из таблицы config.
@@ -156,7 +160,7 @@ def add_service(service: Service):
 
 # --- Маршрут для обновления статуса сервиса ---
 @app.patch("/service-config/{service_name}", response_model=Service)
-def update_service_status(service_name: str, service: Service):
+def update_service_status(service_name: str, service: ServiceUpdate):
     """
     Обновляет статус (enabled/disabled) указанного сервиса.
     """
@@ -171,7 +175,7 @@ def update_service_status(service_name: str, service: Service):
     if cursor.rowcount == 0:
         raise HTTPException(status_code=404, detail="Сервис с указанным именем не найден")
 
-    return service
+    return {"service_name": service_name, "enabled": service.enabled}
 
 
 # --- Маршрут для удаления сервиса ---

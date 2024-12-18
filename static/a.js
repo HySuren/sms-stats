@@ -131,7 +131,7 @@ function toggleServiceStatus(serviceName, newStatus) {
   fetch(`${configApiUrl}/${encodeURIComponent(serviceName)}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ enabled: newStatus }),
+    body: JSON.stringify({ enabled: newStatus }), // Теперь только "enabled"
   })
     .then(() => {
       alert("Статус сервиса обновлен.");
