@@ -104,7 +104,7 @@ function renderServicesTable(data) {
     servicesTableBody.innerHTML += `
       <tr>
         <td>${service.service_name}</td>
-        <td>${service.enabled ? "Активен" : "Неактивен"}</td>
+        <td>${service.enabled ? "<b>Активен</b>" : "<b>Неактивен</b>"}</td>
         <td>
           <button class="toggle-status-btn" data-name="${service.service_name}" data-status="${service.enabled}">
             ${service.enabled ? "Отключить" : "Включить"}
