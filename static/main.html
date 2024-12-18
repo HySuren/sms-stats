@@ -3,58 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SMS Statistics Dashboard</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Статистика рассылки SMS</h1>
+      <h1>Dashboard</h1>
+      <nav>
+        <button class="tab-btn active" data-tab="statistics">Статистика</button>
+        <button class="tab-btn" data-tab="management">Управление сервисами</button>
+      </nav>
     </header>
 
-    <!-- Фильтры -->
-    <section class="filters">
-      <div class="quick-filters">
-        <button class="filter-btn" data-filter="10min">10 минут</button>
-        <button class="filter-btn" data-filter="30min">30 минут</button>
-        <button class="filter-btn" data-filter="1h">1 час</button>
-        <button class="filter-btn" data-filter="today">За сегодня</button>
+    <!-- Вкладка "Статистика" -->
+    <section id="statistics-tab" class="tab active">
+      <h2>Статистика рассылки SMS</h2>
+      <div class="filters">
+        <!-- Фильтры остались без изменений -->
+        <div class="quick-filters">
+          <button class="filter-btn" data-filter="10min">10 минут</button>
+          <button class="filter-btn" data-filter="30min">30 минут</button>
+          <button class="filter-btn" data-filter="1h">1 час</button>
+          <button class="filter-btn" data-filter="today">За сегодня</button>
+        </div>
+        <div class="date-range">
+          <label for="start-date">С:</label>
+          <input type="date" id="start-date">
+          <label for="end-date">По:</label>
+          <input type="date" id="end-date">
+          <button id="apply-dates">Применить</button>
+        </div>
       </div>
-      <div class="date-range">
-        <label for="start-date">С:</label>
-        <input type="date" id="start-date">
-        <label for="end-date">По:</label>
-        <input type="date" id="end-date">
-        <button id="apply-dates">Применить</button>
-      </div>
+      <section class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Имя сервиса</th>
+              <th>Дошло</th>
+              <th>Не дошло</th>
+              <th>Процент</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+          <tfoot>
+            <tr>
+              <td><strong>Итог</strong></td>
+              <td id="total-delivered">0</td>
+              <td id="total-undelivered">0</td>
+              <td id="total-percentage">0%</td>
+            </tr>
+          </tfoot>
+        </table>
+      </section>
     </section>
 
-    <!-- Таблица -->
-    <section class="data-table">
-      <table>
-        <thead>
-          <tr>
-            <th>Имя сервиса</th>
-            <th>Дошло</th>
-            <th>Не дошло</th>
-            <th>Процент</th>
-          </tr>
-        </thead>
-        <tbody id="table-body">
-          <!-- Мок-данные -->
-        </tbody>
-        <tfoot>
-          <tr>
-            <td><strong>Итог</strong></td>
-            <td id="total-delivered">0</td>
-            <td id="total-undelivered">0</td>
-            <td id="total-percentage">0%</td>
-          </tr>
-        </tfoot>
-      </table>
+    <!-- Вкладка "Управление сервисами" -->
+    <section id="management-tab" class="tab">
+      <h2>Управление сервисами</h2>
+      <section class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Имя сервиса</th>
+              <th>Активен</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody id="config-table-body"></tbody>
+        </table>
+      </section>
+      <button id="add-service-btn">Добавить сервис</button>
     </section>
   </div>
-
   <script src="a.js"></script>
 </body>
 </html>

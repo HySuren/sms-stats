@@ -107,3 +107,29 @@ def get_sms_stats(
         )
     return stats
 
+@app.get("/config")
+def get_config():
+    query = "SELECT id, name, active FROM config"
+    rows = query_database(query)
+    return [{"id": row["id"], "name": row["name"], "active": bool(row["active"])} for row in rows]
+
+
+@app.post("/config/toggle/{service_id}")
+def toggle_service(service_id: int):
+    query = "UPDATE config SET active = NOT active WHERE id = ?"
+    conn = get_db_connection()
+    conn.execute(query, (service_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
+
+
+@app.post("/config")
+def add_service(service: dict):
+    name = service.get("name")
+    query = "INSERT INTO config (name, active) VALUES (?, 1)"
+    conn = get_db_connection()
+    conn.execute(query, (name,))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
