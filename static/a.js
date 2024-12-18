@@ -1,6 +1,6 @@
 // URL вашего API
-const apiUrl = "http://s3.c4ke.fun/sms-stats";
-const configApiUrl = "http://s3.c4ke.fun/service-config"; // Новый API для управления сервисами
+const apiUrl = "http://s3.c4ke.fun:8008/sms-stats";
+const configApiUrl = "http://s3.c4ke.fun:8008/service-config"; // Новый API для управления сервисами
 
 // Элементы таблицы статистики
 const tableBody = document.getElementById("table-body");
