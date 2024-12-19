@@ -70,7 +70,7 @@ def get_stats():
 def query_database(query: str, params: tuple = ()):
     conn = get_db_connection()
     try:
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor = conn.cursor()
         cursor.execute(query, params)
         rows = cursor.fetchall()
         cursor.close()
