@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from typing import List, Optional
 import os
 from datetime import datetime, timedelta
-import sqlite3
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
@@ -55,10 +54,6 @@ def get_db_connection():
         return conn
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database connection failed: {e}")
-def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
