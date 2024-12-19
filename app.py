@@ -70,14 +70,13 @@ def get_stats():
 def query_database(query: str, params: tuple = ()):
     conn = get_db_connection()
     try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute(query, params)
-            rows = cursor.fetchall()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        cursor.close()
         return rows
     finally:
         conn.close()
-
-
 
 @app.get("/sms-stats", response_model=List[SMSStat])
 def get_sms_stats(
