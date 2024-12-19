@@ -8,9 +8,18 @@ import sqlite3
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
-
+import psycopg2
+from psycopg2.extras import RealDictCursor
 # Инициализация FastAPI
 app = FastAPI()
+
+DB_CONFIG = {
+    "dbname": "sms_statistic",
+    "user": "pushsms",
+    "password": "d040715e",
+    "host": "s3.c4ke.fun",
+    "port": 5432
+}
 
 # Настройка CORS (для запросов с фронта)
 app.add_middleware(
@@ -41,6 +50,12 @@ class ServiceUpdate(BaseModel):
     enabled: bool
 
 def get_db_connection():
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        return conn
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database connection failed: {e}")
+def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
@@ -54,11 +69,14 @@ def get_stats():
 
 def query_database(query: str, params: tuple = ()):
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(query, params)
-    rows = cursor.fetchall()
-    conn.close()
-    return rows
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+        return rows
+    finally:
+        conn.close()
+
 
 
 @app.get("/sms-stats", response_model=List[SMSStat])
@@ -77,7 +95,6 @@ def get_sms_stats(
     """
     params = []
 
-    # Фильтрация по времени
     if filter:
         now = datetime.now()
         if filter == "10min":
@@ -88,24 +105,20 @@ def get_sms_stats(
             start_time = now - timedelta(hours=1)
         elif filter == "today":
             start_time = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        query += " AND timestamp >= ?"
+        query += " AND timestamp >= %s"
         params.append(start_time)
 
-    # Фильтрация по диапазону дат
     if start_date:
-        query += " AND timestamp >= ?"
+        query += " AND timestamp >= %s"
         params.append(start_date)
     if end_date:
-        query += " AND timestamp <= ?"
+        query += " AND timestamp <= %s"
         params.append(end_date)
 
-    # Группировка по названию сервиса
     query += " GROUP BY service_name"
 
-    # Получение данных из базы
     rows = query_database(query, tuple(params))
 
-    # Формирование ответа
     stats = []
     for row in rows:
         delivered = row["delivered"]
@@ -124,72 +137,64 @@ def get_sms_stats(
 # --- Маршрут для получения списка сервисов ---
 @app.get("/service-config", response_model=List[Service])
 def get_services():
-    """
-    Возвращает список всех сервисов из таблицы config.
-    """
-    conn = get_db_connection()
-    rows = conn.execute("SELECT service_name, enabled FROM config").fetchall()
-    conn.close()
+    query = "SELECT service_name, enabled FROM config"
+    rows = query_database(query)
 
     if not rows:
         raise HTTPException(status_code=404, detail="Сервисы не найдены")
 
-    return [Service(service_name=row["service_name"], enabled=bool(row["enabled"])) for row in rows]
+    return [Service(service_name=row["service_name"], enabled=row["enabled"]) for row in rows]
 
 
 # --- Маршрут для добавления нового сервиса ---
 @app.post("/service-config", response_model=Service)
 def add_service(service: Service):
-    """
-    Добавляет новый сервис в таблицу config.
-    """
+    query = "INSERT INTO config (service_name, enabled) VALUES (%s, %s) RETURNING service_name, enabled"
     conn = get_db_connection()
     try:
-        conn.execute(
-            "INSERT INTO config (service_name, enabled) VALUES (?, ?)",
-            (service.service_name, int(service.enabled)),
-        )
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, (service.service_name, service.enabled))
+            row = cursor.fetchone()
         conn.commit()
-    except sqlite3.IntegrityError:
+        return Service(service_name=row["service_name"], enabled=row["enabled"])
+    except psycopg2.IntegrityError:
+        conn.rollback()
         raise HTTPException(status_code=400, detail="Сервис с таким именем уже существует")
     finally:
         conn.close()
 
-    return service
 
 
 # --- Маршрут для обновления статуса сервиса ---
 @app.patch("/service-config/{service_name}", response_model=Service)
 def update_service_status(service_name: str, service: ServiceUpdate):
-    """
-    Обновляет статус (enabled/disabled) указанного сервиса.
-    """
+    query = "UPDATE config SET enabled = %s WHERE service_name = %s RETURNING service_name, enabled"
     conn = get_db_connection()
-    cursor = conn.execute(
-        "UPDATE config SET enabled = ? WHERE service_name = ?",
-        (int(service.enabled), service_name),
-    )
-    conn.commit()
-    conn.close()
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, (service.enabled, service_name))
+            row = cursor.fetchone()
+        conn.commit()
+        if not row:
+            raise HTTPException(status_code=404, detail="Сервис с указанным именем не найден")
+        return Service(service_name=row["service_name"], enabled=row["enabled"])
+    finally:
+        conn.close()
 
-    if cursor.rowcount == 0:
-        raise HTTPException(status_code=404, detail="Сервис с указанным именем не найден")
-
-    return {"service_name": service_name, "enabled": service.enabled}
 
 
 # --- Маршрут для удаления сервиса ---
 @app.delete("/service-config/{service_name}")
 def delete_service(service_name: str):
-    """
-    Удаляет сервис из таблицы config.
-    """
+    query = "DELETE FROM config WHERE service_name = %s RETURNING service_name"
     conn = get_db_connection()
-    cursor = conn.execute("DELETE FROM config WHERE service_name = ?", (service_name,))
-    conn.commit()
-    conn.close()
-
-    if cursor.rowcount == 0:
-        raise HTTPException(status_code=404, detail="Сервис с указанным именем не найден")
-
-    return {"message": "Сервис успешно удален"}
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(query, (service_name,))
+            row = cursor.fetchone()
+        conn.commit()
+        if not row:
+            raise HTTPException(status_code=404, detail="Сервис с указанным именем не найден")
+        return {"message": "Сервис успешно удален"}
+    finally:
+        conn.close()
