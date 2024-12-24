@@ -181,6 +181,72 @@ async function toggleServiceStatus(serviceName, newStatus) {
 }
 
 
+let realTimeEnabled = false; // Переменная состояния
+let realTimeInterval; // Интервал для обновления
+
+const realTimeButton = document.getElementById("real-time-button");
+
+// Функция переключения состояния кнопки
+realTimeButton.addEventListener("click", () => {
+  realTimeEnabled = !realTimeEnabled; // Меняем состояние
+
+  if (realTimeEnabled) {
+    realTimeButton.textContent = "Выключить обновление";
+    realTimeButton.classList.remove("real-time-off");
+    realTimeButton.classList.add("real-time-on");
+    startRealTimeUpdates();
+  } else {
+    realTimeButton.textContent = "Включить обновление";
+    realTimeButton.classList.remove("real-time-on");
+    realTimeButton.classList.add("real-time-off");
+    stopRealTimeUpdates();
+  }
+});
+
+// Функция запуска обновления в реальном времени
+function startRealTimeUpdates() {
+  fetchData(); // Первая загрузка
+  realTimeInterval = setInterval(() => {
+    fetchData(); // Обновление данных каждые 10 секунд
+  }, 10000);
+}
+
+// Функция остановки обновления в реальном времени
+function stopRealTimeUpdates() {
+  clearInterval(realTimeInterval);
+}
+
+// Принудительное выключение обновления, если пользователь выбирает фильтры
+document.querySelectorAll(".filter-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    if (realTimeEnabled) {
+      realTimeEnabled = false;
+      realTimeButton.textContent = "Включить обновление";
+      realTimeButton.classList.remove("real-time-on");
+      realTimeButton.classList.add("real-time-off");
+      stopRealTimeUpdates();
+    }
+  });
+});
+
+document.getElementById("apply-dates").addEventListener("click", () => {
+  const startDate = document.getElementById("start-date").value;
+  const endDate = document.getElementById("end-date").value;
+
+  if (startDate && endDate) {
+    fetchData(null, startDate, endDate);
+
+    if (realTimeEnabled) {
+      realTimeEnabled = false;
+      realTimeButton.textContent = "Включить обновление";
+      realTimeButton.classList.remove("real-time-on");
+      realTimeButton.classList.add("real-time-off");
+      stopRealTimeUpdates();
+    }
+  } else {
+    alert("Выберите начальную и конечную даты.");
+  }
+})
 
 
 // Удаление сервиса

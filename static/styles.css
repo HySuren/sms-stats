@@ -336,3 +336,37 @@ html, body {
   font-size: 16px;
   color: #333;
 }
+
+
+
+.real-time-toggle {
+  margin: 20px 0;
+  text-align: center;
+}
+
+#real-time-button {
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#real-time-button.real-time-on {
+  background: linear-gradient(145deg, #00ff00, #008000); /* Зеленый цвет */
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+#real-time-button.real-time-off {
+  background: linear-gradient(145deg, #555, #333); /* Серый цвет */
+  color: #ccc;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+#real-time-button:hover {
+  transform: translateY(-3px);
+}
+
