@@ -191,12 +191,12 @@ realTimeButton.addEventListener("click", () => {
   realTimeEnabled = !realTimeEnabled; // Меняем состояние
 
   if (realTimeEnabled) {
-    realTimeButton.textContent = "Выключить обновление";
+    realTimeButton.textContent = "Выключить обновление real-time";
     realTimeButton.classList.remove("real-time-off");
     realTimeButton.classList.add("real-time-on");
     startRealTimeUpdates();
   } else {
-    realTimeButton.textContent = "Включить обновление";
+    realTimeButton.textContent = "Включить обновление real-time";
     realTimeButton.classList.remove("real-time-on");
     realTimeButton.classList.add("real-time-off");
     stopRealTimeUpdates();
@@ -208,7 +208,7 @@ function startRealTimeUpdates() {
   fetchData(); // Первая загрузка
   realTimeInterval = setInterval(() => {
     fetchData(); // Обновление данных каждые 10 секунд
-  }, 10000);
+  }, 1200);
 }
 
 // Функция остановки обновления в реальном времени
