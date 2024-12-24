@@ -129,14 +129,22 @@ function renderServicesTable(data) {
 // Функция для показа popup
 function showPopup(message, success) {
   const popupContainer = document.getElementById('popup-container');
+  const popup = document.getElementById('popup'); // Добавлено для обработчика клика
   const popupMessage = document.getElementById('popup-message');
 
   popupMessage.textContent = message;
   popupContainer.style.display = 'flex';
 
+  // Закрытие при клике на popup
+  popup.addEventListener('click', () => {
+    popupContainer.style.display = 'none';
+    popup.removeEventListener('click', arguments.callee); // Удаляем обработчик после закрытия
+  });
+
+  // Скрываем через 3 секунды, если пользователь не закрыл раньше
   setTimeout(() => {
     popupContainer.style.display = 'none';
-  }, 3000); // Скрываем через 3 секунды
+  }, 3000);
 }
 
 // Изменение статуса сервиса
