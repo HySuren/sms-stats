@@ -127,21 +127,30 @@ function renderServicesTable(data) {
 }
 
 // Изменение статуса сервиса
-function toggleServiceStatus(serviceName, newStatus) {
-  fetch(`${configApiUrl}/${encodeURIComponent(serviceName)}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ enabled: newStatus }), // Теперь только "enabled"
-  })
-    .then(() => {
+async function toggleServiceStatus(serviceName, newStatus) {
+  try {
+    const response = await fetch(`${configApiUrl}/${encodeURIComponent(serviceName)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: newStatus }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json(); // Пытаемся получить JSON-ответ об ошибке
+      const errorMessage = errorData.message || `Ошибка ${response.status}`; // Обработка ошибок
+      alert(`Не удалось обновить статус сервиса: ${errorMessage}`);
+      console.error("Ошибка обновления статуса:", errorData);
+    } else {
       alert("Статус сервиса обновлен.");
       fetchServices();
-    })
-    .catch((error) => {
-      console.error("Ошибка обновления статуса:", error);
-      alert("Не удалось обновить статус сервиса.");
-    });
+    }
+  } catch (error) {
+    console.error("Ошибка обновления статуса:", error);
+    alert("Не удалось обновить статус сервиса. Проверьте подключение к интернету.");
+  }
 }
+
+
 
 // Удаление сервиса
 function deleteService(serviceName) {
