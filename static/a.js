@@ -216,37 +216,37 @@ function stopRealTimeUpdates() {
   clearInterval(realTimeInterval);
 }
 
-// Принудительное выключение обновления, если пользователь выбирает фильтры
-document.querySelectorAll(".filter-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    if (realTimeEnabled) {
-      realTimeEnabled = false;
-      realTimeButton.textContent = "Включить обновление";
-      realTimeButton.classList.remove("real-time-on");
-      realTimeButton.classList.add("real-time-off");
-      stopRealTimeUpdates();
-    }
-  });
-});
+// Загрузка статистики
+function fetchData(filter = null, startDate = null, endDate = null) {
+  const today = new Date().toISOString().split("T")[0]; // Получаем текущую дату в формате YYYY-MM-DD
 
-document.getElementById("apply-dates").addEventListener("click", () => {
-  const startDate = document.getElementById("start-date").value;
-  const endDate = document.getElementById("end-date").value;
+  // Если startDate и endDate не заданы, используем сегодняшнюю дату
+  startDate = startDate || today;
+  endDate = endDate || today;
 
-  if (startDate && endDate) {
-    fetchData(null, startDate, endDate);
+  let url = new URL(apiUrl);
 
-    if (realTimeEnabled) {
-      realTimeEnabled = false;
-      realTimeButton.textContent = "Включить обновление";
-      realTimeButton.classList.remove("real-time-on");
-      realTimeButton.classList.add("real-time-off");
-      stopRealTimeUpdates();
-    }
-  } else {
-    alert("Выберите начальную и конечную даты.");
-  }
-})
+  if (filter) url.searchParams.append("filter", filter);
+  if (startDate) url.searchParams.append("start_date", startDate);
+  if (endDate) url.searchParams.append("end_date", endDate);
+
+  fetch(url)
+    .then((response) => response.json())
+    .then((data) => renderTable(data))
+    .catch((error) => {
+      console.error("Ошибка загрузки статистики:", error);
+      alert("Не удалось загрузить статистику.");
+    });
+}
+
+// Функция запуска обновления в реальном времени
+function startRealTimeUpdates() {
+  fetchData(); // Первая загрузка данных за сегодня
+  realTimeInterval = setInterval(() => {
+    fetchData(); // Обновление данных каждые 10 секунд
+  }, 1200);
+}
+
 
 
 // Удаление сервиса
