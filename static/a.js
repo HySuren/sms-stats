@@ -100,7 +100,10 @@ function fetchServices() {
 
 function renderServicesTable(data) {
   servicesTableBody.innerHTML = "";
+  let activeCount = 0; // Счётчик активных сервисов
+
   data.forEach((service) => {
+    if (service.enabled) activeCount++; // Увеличиваем счётчик активных сервисов
     servicesTableBody.innerHTML += `
       <tr>
         <td>${service.service_name}</td>
@@ -115,6 +118,11 @@ function renderServicesTable(data) {
     `;
   });
 
+  // Обновляем отображение количества активных сервисов
+  const activeServicesCount = document.getElementById("active-services-count");
+  activeServicesCount.textContent = `Активные сервисы: ${activeCount}`;
+
+  // Обработчики событий
   document.querySelectorAll(".toggle-status-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       toggleServiceStatus(btn.getAttribute("data-name"), btn.getAttribute("data-status") !== "true");
@@ -125,6 +133,7 @@ function renderServicesTable(data) {
     btn.addEventListener("click", () => deleteService(btn.getAttribute("data-name")));
   });
 }
+
 
 // Функция для показа popup
 function showPopup(message, success) {
