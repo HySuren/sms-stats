@@ -103,7 +103,7 @@ function renderServicesTable(data) {
   let activeCount = 0; // Счётчик активных сервисов
 
   data.forEach((service) => {
-    if (service.enabled) activeCount++; // Увеличиваем счётчик активных сервисов
+    if (service) activeCount++; // Увеличиваем счётчик активных сервисов
     servicesTableBody.innerHTML += `
       <tr>
         <td>${service.service_name}</td>
