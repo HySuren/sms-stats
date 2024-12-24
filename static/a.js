@@ -126,6 +126,19 @@ function renderServicesTable(data) {
   });
 }
 
+// Функция для показа popup
+function showPopup(message, success) {
+  const popupContainer = document.getElementById('popup-container');
+  const popupMessage = document.getElementById('popup-message');
+
+  popupMessage.textContent = message;
+  popupContainer.style.display = 'flex';
+
+  setTimeout(() => {
+    popupContainer.style.display = 'none';
+  }, 3000); // Скрываем через 3 секунды
+}
+
 // Изменение статуса сервиса
 async function toggleServiceStatus(serviceName, newStatus) {
   try {
@@ -136,19 +149,20 @@ async function toggleServiceStatus(serviceName, newStatus) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json(); // Пытаемся получить JSON-ответ об ошибке
-      const errorMessage = errorData.message || `Ошибка ${response.status}`; // Обработка ошибок
-      alert(`Не удалось обновить статус сервиса: ${errorMessage}`);
+      const errorData = await response.json();
+      const errorMessage = errorData.message || `Ошибка ${response.status}`;
+      showPopup(errorMessage, false);
       console.error("Ошибка обновления статуса:", errorData);
     } else {
-      alert("Статус сервиса обновлен.");
+      showPopup("Статус сервиса обновлен.", true);
       fetchServices();
     }
   } catch (error) {
     console.error("Ошибка обновления статуса:", error);
-    alert("Не удалось обновить статус сервиса. Проверьте подключение к интернету.");
+    showPopup("Не удалось обновить статус сервиса. Проверьте подключение.", false);
   }
 }
+
 
 
 
