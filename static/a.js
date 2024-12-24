@@ -205,9 +205,9 @@ realTimeButton.addEventListener("click", () => {
 
 // Функция запуска обновления в реальном времени
 function startRealTimeUpdates() {
-  fetchData(); // Первая загрузка
+  fetchData('today');
   realTimeInterval = setInterval(() => {
-    fetchData(); // Обновление данных каждые 10 секунд
+    fetchData('today');
   }, 1200);
 }
 
