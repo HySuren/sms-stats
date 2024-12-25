@@ -9,15 +9,18 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
+
+load_dotenv()
 # Инициализация FastAPI
 app = FastAPI()
 
 DB_CONFIG = {
-    "dbname": "sms_statistic",
-    "user": "pushsms",
-    "password": "d040715e",
-    "host": "s3.c4ke.fun",
-    "port": 5432
+    "dbname": os.getenv('DBNAME'),
+    "user": os.getenv('DBUSER'),
+    "password": os.getenv('DBPASSWORD'),
+    "host": os.getenv('DBHOST'),
+    "port": os.getenv('DBPORT')
 }
 
 # Настройка CORS (для запросов с фронта)
@@ -58,9 +61,12 @@ def get_db_connection():
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/stats", response_class=HTMLResponse)
-def get_stats():
-    html_file = Path("static/main.html").read_text()
-    return HTMLResponse(content=html_file)
+def get_stats(token: str = ''):
+    if token in (os.getenv('TOKEN_1'), os.getenv('TOKEN_2')):
+        html_file = Path("static/main.html").read_text()
+        return HTMLResponse(content=html_file)
+    else:
+        return HTTPException(status_code=401, detail={'detail': 'Неверный токен авторизации'})
 
 def query_database(query: str, params: tuple = ()):
     conn = get_db_connection()
