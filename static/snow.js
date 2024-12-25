@@ -1,21 +1,32 @@
 const snowflakesContainer = document.querySelector('.snowflakes');
 
 function createSnowflake() {
-    const snowflake = document.createElement('div');
-    snowflake.className = 'snowflake';
+    // Проверяем текущее количество снежинок
+    const currentSnowflakes = snowflakesContainer.querySelectorAll('.snowflake').length;
 
-    snowflake.textContent = '❄️';
+    // Если снежинок меньше 50, создаем новую
+    if (currentSnowflakes < 50) {
+        const snowflake = document.createElement('div');
+        snowflake.className = 'snowflake';
 
-    snowflake.style.left = Math.random() * 100 + 'vw';
+        // Случайный символ снежинки
+        snowflake.textContent = '❄️';
 
-    snowflake.style.animationDuration = Math.random() * 3 + 2 + 's';
-    snowflake.style.animationDelay = Math.random() * 5 + 's';
+        // Случайное положение по горизонтали
+        snowflake.style.left = Math.random() * 100 + 'vw';
 
-    snowflakesContainer.appendChild(snowflake);
+        // Случайная анимация
+        snowflake.style.animationDuration = Math.random() * 3 + 2 + 's'; // от 2 до 5 секунд
+        snowflake.style.animationDelay = Math.random() * 5 + 's'; // случайная задержка
 
-    snowflake.addEventListener('animationend', () => {
-        snowflake.remove();
-    });
+        snowflakesContainer.appendChild(snowflake);
+
+        // Удаляем снежинку после завершения анимации
+        snowflake.addEventListener('animationend', () => {
+            snowflake.remove();
+        });
+    }
 }
 
-setInterval(createSnowflake, 300);
+// Создаем снежинки каждые 500 миллисекунд
+setInterval(createSnowflake, 500);
