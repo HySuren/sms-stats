@@ -241,9 +241,6 @@ document.getElementById("apply-dates").addEventListener("click", () => {
       realTimeButton.classList.add("real-time-off");
       stopRealTimeUpdates();
     }
-   else {
-    alert("Выберите начальную и конечную даты.");
-  }
 })
 
 
