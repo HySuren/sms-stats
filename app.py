@@ -6,6 +6,7 @@ import os
 from datetime import datetime, timedelta
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
 from pathlib import Path
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -206,11 +207,11 @@ async def custom_swagger_ui_html(token: str = ''):
     if token in VALID_TOKENS:
         return get_swagger_ui_html(openapi_url=app.openapi_url, title=app.title + " - Docs")
     else:
-        return HTMLResponse(content="Вы не признаны разработчиком 0_0", status_code=403)
+        raise HTMLResponse(content="Вы не признаны разработчиком 0_0", status_code=403)
 
 @app.get("/redoc", include_in_schema=False)
 async def custom_redoc_html(token: str = ''):
     if token in VALID_TOKENS:
         return get_redoc_html(openapi_url=app.openapi_url, title=app.title + " - ReDoc")
     else:
-        return HTMLResponse(content="Вы не признаны разработчиком 0_0", status_code=403)
+        raise HTMLResponse(content="Вы не признаны разработчиком 0_0", status_code=403)
