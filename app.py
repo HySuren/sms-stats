@@ -15,6 +15,8 @@ load_dotenv()
 # Инициализация FastAPI
 app = FastAPI()
 
+VALID_TOKENS = (os.getenv('TOKEN_1'), os.getenv('TOKEN_2'))
+
 DB_CONFIG = {
     "dbname": os.getenv('DBNAME'),
     "user": os.getenv('DBUSER'),
@@ -62,7 +64,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/stats", response_class=HTMLResponse)
 def get_stats(token: str = ''):
-    if token in (os.getenv('TOKEN_1'), os.getenv('TOKEN_2')):
+    if token in VALID_TOKENS:
         html_file = Path("static/main.html").read_text()
         return HTMLResponse(content=html_file)
     else:
@@ -198,3 +200,17 @@ def delete_service(service_name: str):
         return {"message": "Сервис успешно удален"}
     finally:
         conn.close()
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html(token: str = ''):
+    if token in VALID_TOKENS:
+        return get_swagger_ui_html(openapi_url=app.openapi_url, title=app.title + " - Docs")
+    else:
+        return HTMLResponse(content="Вы не признаны разработчиком 0_0", status_code=403)
+
+@app.get("/redoc", include_in_schema=False)
+async def custom_redoc_html(token: str = ''):
+    if token in VALID_TOKENS:
+        return get_redoc_html(openapi_url=app.openapi_url, title=app.title + " - ReDoc")
+    else:
+        return HTMLResponse(content="Вы не признаны разработчиком 0_0", status_code=403)
