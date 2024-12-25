@@ -66,7 +66,7 @@ def get_stats(token: str = ''):
         html_file = Path("static/main.html").read_text()
         return HTMLResponse(content=html_file)
     else:
-        return HTTPException(status_code=401, detail={'detail': 'Неверный токен авторизации'})
+        return HTTPException(status_code=401, detail='Неверный токен авторизации')
 
 def query_database(query: str, params: tuple = ()):
     conn = get_db_connection()
