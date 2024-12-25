@@ -94,7 +94,7 @@ def get_sms_stats(
             SUM(delivered) AS delivered, 
             SUM(not_delivered) AS not_delivered 
         FROM sms_stats 
-        WHERE 
+        WHERE 1=1
     """
     params = []
 
@@ -108,11 +108,11 @@ def get_sms_stats(
             start_time = now - timedelta(hours=1)
         elif filter == "today":
             start_time = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        query += " timestamp >= %s"
+        query += " AND timestamp >= %s"
         params.append(start_time)
 
     if start_date:
-        query += " timestamp >= %s"
+        query += " AND timestamp >= %s"
         params.append(start_date)
     if end_date:
         query += " AND timestamp <= %s"
