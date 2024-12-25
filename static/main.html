@@ -40,7 +40,7 @@
         </div>
       </div>
       <div id="active-services-count" style="margin-top: 10px; font-size: 16px; color: #ddd;">
-  <br>Активные сервисы: 0<br>
+  Активные сервисы: 0
       </div>
       <section class="data-table">
         <table>
@@ -80,6 +80,19 @@
           <tbody id="services-table-body"></tbody>
         </table>
       </section>
+
+      <!-- Форма добавления нового сервиса -->
+      <div class="add-service-form">
+        <h3>Добавить новый сервис</h3>
+        <form id="add-service-form">
+          <input type="text" id="new-service-name" placeholder="Имя сервиса" />
+          <label>
+            <input type="checkbox" id="new-service-enabled" checked />
+            Активен
+          </label>
+          <button type="submit">Добавить</button>
+        </form>
+      </div>
     </section>
   </div>
   <div id="popup-container" style="display: none;">
