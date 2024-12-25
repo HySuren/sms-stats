@@ -112,8 +112,12 @@ def get_sms_stats(
         params.append(start_time)
 
     if start_date:
-        query += " AND timestamp >= %s"
-        params.append(start_date)
+        if filter == "today":
+            query += " AND timestamp >= now()::date"
+            params.append(start_date)
+        else:
+            query += " AND timestamp >= %s"
+            params.append(start_date)
     if end_date:
         query += " AND timestamp <= %s"
         params.append(end_date)
