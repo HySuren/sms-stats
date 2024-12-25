@@ -233,17 +233,15 @@ document.getElementById("apply-dates").addEventListener("click", () => {
   const startDate = document.getElementById("start-date").value;
   const endDate = document.getElementById("end-date").value;
 
-  if (startDate && endDate) {
-    fetchData('today');
-
     if (realTimeEnabled) {
+      fetchData('today')
       realTimeEnabled = false;
       realTimeButton.textContent = "Включить обновление real-time";
       realTimeButton.classList.remove("real-time-on");
       realTimeButton.classList.add("real-time-off");
       stopRealTimeUpdates();
     }
-  } else {
+   else {
     alert("Выберите начальную и конечную даты.");
   }
 })
