@@ -285,7 +285,7 @@ def prepare_stats_message():
         if total_delivered + total_not_delivered > 0
         else 0
     )
-    messages.append("🔹 *Общая статистика:*")
+    messages.append("\n🔹 *Общая статистика:*")
     messages.append(
         f"Дошло *{total_delivered}* | Не дошло *{total_not_delivered}* | Успех *{round(total_percentage, 2)}%*"
     )
