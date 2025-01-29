@@ -277,7 +277,7 @@ def prepare_stats_message():
         total_not_delivered += not_delivered
 
         messages.append(
-            f"- {service['service_name']}: Дошло {delivered}, Не дошло {not_delivered}, Успех {percentage}%"
+            f"- **{service['service_name']}**: Дошло **{delivered}** | Не дошло **{not_delivered}** | Успех **{percentage}%**"
         )
 
     total_percentage = (
@@ -287,7 +287,7 @@ def prepare_stats_message():
     )
     messages.append("🔹 *Общая статистика:*")
     messages.append(
-        f"Дошло {total_delivered}, Не дошло {total_not_delivered}, Успех {round(total_percentage, 2)}%"
+        f"Дошло **{total_delivered}** | Не дошло **{total_not_delivered}** | Успех **{round(total_percentage, 2)}%**"
     )
     return "\n".join(messages)
 
