@@ -11,6 +11,11 @@ from pathlib import Path
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi_utils.tasks import repeat_every
+from datetime import datetime, timedelta
+import requests
+
 
 load_dotenv()
 # Инициализация FastAPI
@@ -219,3 +224,75 @@ async def custom_redoc_html(token: str = ''):
         return get_redoc_html(openapi_url=app.openapi_url, title=app.title + " - ReDoc")
     else:
         raise HTMLResponse(content="Вы не признаны разработчиком 0_0", status_code=403)
+
+# Telegram bot token и ID канала
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHANNEL_ID = os.getenv('TELEGRAM_CHANNEL_ID') # Замените на ваш канал
+
+# Функция для отправки сообщений в Telegram
+def send_to_telegram(message: str):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHANNEL_ID,
+        "text": message,
+        "parse_mode": "Markdown"
+    }
+    response = requests.post(url, json=payload)
+    if response.status_code != 200:
+        print(f"Ошибка отправки сообщения: {response.json()}")
+
+# Функция для получения статистики за последний час
+def fetch_hourly_stats():
+    now = datetime.now()
+    start_time = (now - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
+    end_time = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    try:
+        response = requests.get(
+            "http://127.0.0.1:8000/sms-stats",
+            params={"start_date": start_time, "end_date": end_time}
+        )
+        response.raise_for_status()
+        stats = response.json()
+        return stats
+    except Exception as e:
+        print(f"Ошибка получения статистики: {e}")
+        return []
+
+# Функция для формирования сообщения
+def prepare_stats_message():
+    stats = fetch_hourly_stats()
+    if not stats:
+        return "За последний час статистика недоступна."
+
+    total_delivered = 0
+    total_not_delivered = 0
+    messages = ["📊 *Статистика за последний час:*"]
+
+    for service in stats:
+        delivered = service["delivered"]
+        not_delivered = service["not_delivered"]
+        percentage = service["percentage"]
+        total_delivered += delivered
+        total_not_delivered += not_delivered
+
+        messages.append(
+            f"- {service['service_name']}: Дошло {delivered}, Не дошло {not_delivered}, Успех {percentage}%"
+        )
+
+    total_percentage = (
+        (total_delivered / (total_delivered + total_not_delivered)) * 100
+        if total_delivered + total_not_delivered > 0
+        else 0
+    )
+    messages.append("🔹 *Общая статистика:*")
+    messages.append(
+        f"Дошло {total_delivered}, Не дошло {total_not_delivered}, Успех {round(total_percentage, 2)}%"
+    )
+    return "\n".join(messages)
+
+@app.on_event("startup")
+@repeat_every(seconds=3600)
+def periodic_send_stats():
+    message = prepare_stats_message()
+    send_to_telegram(message)
