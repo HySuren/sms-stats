@@ -249,7 +249,7 @@ def fetch_hourly_stats():
 
     try:
         response = requests.get(
-            "http://127.0.0.1:8000/sms-stats",
+            "http://s3.c4ke.fun:8000/sms-stats",
             params={"start_date": start_time, "end_date": end_time}
         )
         response.raise_for_status()
