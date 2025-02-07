@@ -68,6 +68,17 @@ def get_db_connection():
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+def query_database(query: str, params: tuple = ()):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        cursor.close()
+        return rows
+    finally:
+        conn.close()
+
 @app.get("/stats", response_class=HTMLResponse)
 def get_stats(token: str = ''):
     if token in VALID_TOKENS:
