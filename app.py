@@ -158,8 +158,8 @@ def get_services():
     return [Service(service_name=row["service_name"], enabled=row["enabled"]) for row in rows]
 
 @app.post('/captcha')
-def return_captcha_result(link: str, cookie: str, user_agent: str, proxy: str):
-    result = captcha_temu(link=link, headers=headers)
+def return_captcha_result(uuid_temu: str, cookie: str, user_agent: str, proxy: str):
+    result = captcha_temu(uuid_temu=uuid_temu, cookie=cookie, user_agent=user_agent, proxy_string=proxy )
     return  {'is_captcha': result}
 
 

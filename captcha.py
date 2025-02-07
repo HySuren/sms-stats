@@ -7,10 +7,12 @@ api_key = "c6b610b7f5f3afe1f4fe87ea5de7a83d"
 
 
 def parse_proxy(proxy_string: str):
+    # Разделяем строку на части
     user_pass, server_port = proxy_string.split('@')
     username, password = user_pass.split(':')
     server, port = server_port.split(':')
 
+    # Создаем словарь с прокси данными
     proxy_dict = {
         'server': f"{server}:{port}",
         'username': username,
@@ -19,9 +21,9 @@ def parse_proxy(proxy_string: str):
 
     return proxy_dict
 
-def captcha_temu(link: str, cookie: str, user_agent: str, proxy_string: str):
+def captcha_temu(uuid_temu: str, cookie: str, user_agent: str, proxy_string: str):
     proxys = parse_proxy(proxy_string)
-
+    link = f'https://www.temu.com/bgn_verification.html?VerifyAuthToken={uuid_temu}&from=https%3A%2F%2Fwww.temu.com%2F&refer_page_name=home&refer_page_id=10005_1738957391149_k9dvjxmkqh&refer_page_sn=10005&_x_sessn_id=mpfb54oajl'
     headers = {
         'cookie': cookie,
         'user-agent': user_agent
@@ -29,7 +31,7 @@ def captcha_temu(link: str, cookie: str, user_agent: str, proxy_string: str):
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
-        page = browser.new_page(proxy=proxys)
+        page = browser.new_page(proxy=proxys)  # Передаем параметры прокси в виде словаря
 
         config = StealthConfig(
             navigator_languages=False,
