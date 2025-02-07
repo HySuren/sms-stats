@@ -4,17 +4,32 @@ from playwright_stealth import stealth_sync, StealthConfig
 import time
 
 api_key = "c6b610b7f5f3afe1f4fe87ea5de7a83d"
-proxy = {
-    'server': 'gate.smartproxy.com:7000',
-    'username': 'danyaH',
-    'password': '6+i9rryFRwYmg3Ins7'
-}
 
-def captcha_temu(link: str, headers: dict = {}):
+
+def parse_proxy(proxy_string: str):
+    user_pass, server_port = proxy_string.split('@')
+    username, password = user_pass.split(':')
+    server, port = server_port.split(':')
+
+    proxy_dict = {
+        'server': f"{server}:{port}",
+        'username': username,
+        'password': password
+    }
+
+    return proxy_dict
+
+def captcha_temu(link: str, cookie: str, user_agent: str, proxy_string: str):
+    proxys = parse_proxy(proxy_string)
+
+    headers = {
+        'cookie': cookie,
+        'user-agent': user_agent
+    }
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
-        page = browser.new_page(proxy=proxy)  # Передаем параметры прокси в виде словаря
+        page = browser.new_page(proxy=proxys)
 
         config = StealthConfig(
             navigator_languages=False,
@@ -27,7 +42,7 @@ def captcha_temu(link: str, headers: dict = {}):
 
         page.goto(link)
 
-        sadcaptcha = PlaywrightSolver(page, api_key, headers=headers, proxy=proxy)
+        sadcaptcha = PlaywrightSolver(page, api_key, headers=headers, proxy=proxys)
 
         try:
             sadcaptcha.solve_captcha_if_present(retries=5)
