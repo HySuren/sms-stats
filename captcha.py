@@ -7,19 +7,15 @@ api_key = "c6b610b7f5f3afe1f4fe87ea5de7a83d"
 
 
 def parse_proxy(proxy_string: str):
-    # Разделяем строку на части
-    user_pass, server_port = proxy_string.split('@')
-    username, password = user_pass.split(':')
-    server, port = server_port.split(':')
-
-    # Создаем словарь с прокси данными
+    server, port, username, password = proxy_string.split(':')
     proxy_dict = {
-        'server': f"{server}:{port}",
+        'server': server + ':' + port,
         'username': username,
         'password': password
     }
 
     return proxy_dict
+
 
 def captcha_temu(uuid_temu: str, cookie: str, user_agent: str, proxy_string: str):
     proxys = parse_proxy(proxy_string)
