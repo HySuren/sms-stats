@@ -14,11 +14,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi_utils.tasks import repeat_every
 from datetime import datetime, timedelta
+from captcha import captcha_temu
 import requests
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from temu_captcha_solver import TemuCaptchaSolver  # Импортируйте ваш модуль
-
 
 load_dotenv()
 # Инициализация FastAPI
@@ -78,28 +75,6 @@ def get_stats(token: str = ''):
         return HTMLResponse(content=html_file)
     else:
         raise HTTPException(status_code=401, detail='Неверный токен авторизации')
-
-class SessionRequest(BaseModel):
-    session_id: str
-
-@app.post("/check_captcha")
-async def check_captcha(request: SessionRequest):
-    captcha_solver = TemuCaptchaSolver()
-    session_id = request.session_id
-    is_solved = captcha_solver.is_captcha_solved(session_id)  # Замените на правильный метод
-
-    return {"solved": is_solved}
-
-def query_database(query: str, params: tuple = ()):
-    conn = get_db_connection()
-    try:
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute(query, params)
-        rows = cursor.fetchall()
-        cursor.close()
-        return rows
-    finally:
-        conn.close()
 
 @app.get("/sms-stats", response_model=List[SMSStat])
 def get_sms_stats(
@@ -170,6 +145,11 @@ def get_services():
         raise HTTPException(status_code=404, detail="Сервисы не найдены")
 
     return [Service(service_name=row["service_name"], enabled=row["enabled"]) for row in rows]
+
+@app.post('/captcha')
+def return_captcha_result(link: str, headers: dict):
+    result = captcha_temu(link=link, headers=headers)
+    return  {'is_captcha': result}
 
 
 # --- Маршрут для добавления нового сервиса ---
