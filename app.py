@@ -15,6 +15,9 @@ from fastapi import FastAPI
 from fastapi_utils.tasks import repeat_every
 from datetime import datetime, timedelta
 import requests
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from temu_captcha_solver import TemuCaptchaSolver  # Импортируйте ваш модуль
 
 
 load_dotenv()
@@ -75,6 +78,17 @@ def get_stats(token: str = ''):
         return HTMLResponse(content=html_file)
     else:
         raise HTTPException(status_code=401, detail='Неверный токен авторизации')
+
+class SessionRequest(BaseModel):
+    session_id: str
+
+@app.post("/check_captcha")
+async def check_captcha(request: SessionRequest):
+    captcha_solver = TemuCaptchaSolver()
+    session_id = request.session_id
+    is_solved = captcha_solver.is_captcha_solved(session_id)  # Замените на правильный метод
+
+    return {"solved": is_solved}
 
 def query_database(query: str, params: tuple = ()):
     conn = get_db_connection()
